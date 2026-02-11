@@ -1,0 +1,25 @@
+2/10/2026 - 
+- Random Pricer Error: 382.08 +- 37.47 at ~95% confidence
+- MSE: 219,084
+- r2: -896.9%
+
+- Constant Pricer Error: 106.18 +- 14.36 at 95% confidence
+- MSE: 106.18
+- r2: -0.2%
+
+- Linear Regression Error: 101.56 +- 14.21 at 95% confidence
+- MSE: 20,832
+- r2: 5.2%
+
+- NLP for Lnear Regression (Bag of Words): 76.81 +- 11.20 at 95% confidence
+- MSE: 12,786
+- r2: 41.8%
+
+- Random Forest: 73.04 +- 11.93 at 95% confidence
+- MSE: 12,747
+- r2: 42.0%
+
+- XGBoost: 68.23 +- 9.73 at 95% confidence
+- MSE: 9,582
+- r2: 56.4%
+
