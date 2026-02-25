@@ -1,4 +1,4 @@
-2/10/2026 - 
+Pricing Predition Evaluations - 
 - Random Pricer Error: 382.08 +- 37.47 at ~95% confidence
 - MSE: 219,084
 - r2: -896.9%
@@ -22,4 +22,32 @@
 - XGBoost: 68.23 +- 9.73 at 95% confidence
 - MSE: 9,582
 - r2: 56.4%
+
+- Human: 87.62 +- 24.16 at 95% confidence
+- MSE: 22,872
+- r2: 6.9%
+
+- Vanilla 8 layer neural network: 58.82 +- 9.38 at 95% confidence
+- MSE: 8,039
+- r2: 63.4%
+
+- Optimized 3 layer nueral network with Batchorm, 30 epochs: 51.53 +- 9.07 at 95% confidence
+- MSE: 6.934
+- r2: 68.4%
+
+- Gemma 270b: 202.10 +- 46.85 at 95% confidence
+- MSE: 155,126
+- r2: -605.8%
+
+- GPT-4.1-nano: 68.29 +- 15.79 at 95% confidence
+- MSE: 17,638
+- r2: 19.7% 
+
+- Claude Opus 4.6: 49.14 +- 33.92
+- MSE: 8,406
+- r2: 67.9%
+
+- GPT-5.1: 48.24 +- 10.66 at 95% confidence
+- MSE: 8,244
+- r2: 62.5%
 

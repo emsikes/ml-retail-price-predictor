@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neural Network Architecture Viewer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface-hover: #1a2235;
+    --border: #1e293b;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+    --accent: #3b82f6;
+    --accent-glow: rgba(59,130,246,0.15);
+    --relu: #10b981;
+    --relu-glow: rgba(16,185,129,0.12);
+    --input-color: #f59e0b;
+    --input-glow: rgba(245,158,11,0.12);
+    --output-color: #ef4444;
+    --output-glow: rgba(239,68,68,0.12);
+    --conn: rgba(59,130,246,0.08);
+    --conn-active: rgba(59,130,246,0.25);
+  }
+
+  body {
+    background: var(--bg);
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    color: var(--text);
+    padding: 24px;
+    min-height: 100vh;
+  }
+
+  .container { max-width: 960px; margin: 0 auto; }
+
+  h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 22px; font-weight: 700;
+    letter-spacing: -0.5px; margin-bottom: 6px;
+  }
+  h1 .accent { color: var(--accent); }
+
+  .subtitle {
+    color: var(--text-dim); font-size: 12px; line-height: 1.5; margin-bottom: 24px;
+  }
+
+  .diagram-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 8px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .diagram-box svg { width: 100%; display: block; }
+
+  .controls { display: flex; gap: 8px; margin-bottom: 16px; }
+  .controls button {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 8px; padding: 8px 14px;
+    font-size: 11px; font-family: 'JetBrains Mono', monospace;
+    cursor: pointer; transition: all 0.3s;
+  }
+  .controls button:hover { border-color: var(--accent); color: var(--text); }
+  .controls button.active {
+    background: var(--accent-glow);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .info-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    min-height: 140px;
+    transition: border-color 0.4s;
+    margin-bottom: 16px;
+  }
+
+  .info-header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+  }
+  .info-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+  .info-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px; font-weight: 600;
+  }
+  .info-badge {
+    font-size: 11px; color: var(--text-dim);
+    background: var(--bg); padding: 2px 8px; border-radius: 4px;
+  }
+  .info-desc {
+    color: var(--text-muted); font-size: 13px; line-height: 1.7;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .info-stats {
+    margin-top: 14px; display: flex; gap: 16px; flex-wrap: wrap;
+  }
+  .info-stat-label {
+    font-size: 9px; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px;
+  }
+  .info-stat-value {
+    font-size: 12px; color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .placeholder-text {
+    color: var(--text-dim); font-size: 13px;
+    font-family: 'Space Grotesk', sans-serif; line-height: 1.8;
+  }
+  .placeholder-text .hl { color: var(--text-muted); }
+
+  .legend { margin-top: 12px; display: flex; gap: 20px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  .observations {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+  }
+  .observations h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px; font-weight: 600; margin-bottom: 12px;
+  }
+  .obs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+  }
+  .obs-card {
+    background: var(--bg); border-radius: 8px;
+    padding: 14px 16px; border-left: 3px solid;
+  }
+  .obs-card-title {
+    font-size: 12px; font-weight: 600;
+    font-family: 'Space Grotesk', sans-serif; margin-bottom: 6px;
+  }
+  .obs-card-body {
+    font-size: 11.5px; color: var(--text-muted); line-height: 1.65;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  /* Layer hover zones */
+  .layer-zone { cursor: pointer; }
+  .layer-zone:hover .neuron-outer { opacity: 0.7; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1><span class="accent">nn.Module</span> Architecture</h1>
+  <p class="subtitle">8-layer feedforward network · 25,473 trainable parameters · Regression output</p>
+
+  <div class="diagram-box">
+    <svg id="diagram" viewBox="0 0 900 380"></svg>
+  </div>
+
+  <div class="controls">
+    <button id="btn-flow" onclick="toggleFlow()">○ Data Flow</button>
+    <button id="btn-clear" onclick="clearSelection()" style="opacity:0.4">Clear Selection</button>
+  </div>
+
+  <div class="info-panel" id="info-panel"></div>
+  <div class="observations">
+    <h2>Key Observations</h2>
+    <div class="obs-grid">
+      <div class="obs-card" style="border-left-color:var(--input-color)">
+        <div class="obs-card-title" style="color:var(--input-color)">Deep & Narrow</div>
+        <div class="obs-card-body">6 hidden layers at 64 neurons is quite deep for a regression task. Consider whether you need this much depth — 2–3 hidden layers often suffice.</div>
+      </div>
+      <div class="obs-card" style="border-left-color:var(--output-color)">
+        <div class="obs-card-title" style="color:var(--output-color)">No Regularization</div>
+        <div class="obs-card-body">No Dropout, BatchNorm, or weight decay visible. With 8 layers, overfitting is a real risk. Consider adding nn.Dropout(0.2) between layers.</div>
+      </div>
+      <div class="obs-card" style="border-left-color:var(--accent)">
+        <div class="obs-card-title" style="color:var(--accent)">No Skip Connections</div>
+        <div class="obs-card-body">Straight sequential path means gradients must flow through all 8 layers. Residual connections (like ResNet) would help training stability.</div>
+      </div>
+      <div class="obs-card" style="border-left-color:var(--relu)">
+        <div class="obs-card-title" style="color:var(--relu)">Regression Output</div>
+        <div class="obs-card-body">The final layer has no activation, outputting a raw scalar — this is a regression network predicting a single continuous value.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const LAYERS = [
+  { name:"Input",   neurons:8, label:"input_size", activation:"—",    desc:"Raw feature vector. The size depends on your dataset — each feature becomes one input neuron." },
+  { name:"Layer 1", neurons:8, label:"128",        activation:"ReLU", desc:"First hidden layer expands to 128 neurons. This wider layer lets the network learn a rich set of low-level feature combinations." },
+  { name:"Layer 2", neurons:6, label:"64",         activation:"ReLU", desc:"Compresses from 128 → 64 neurons. This bottleneck forces the network to distill the most important patterns." },
+  { name:"Layer 3", neurons:6, label:"64",         activation:"ReLU", desc:"First of five same-sized hidden layers (64 → 64). Deeper layers learn increasingly abstract representations." },
+  { name:"Layer 4", neurons:6, label:"64",         activation:"ReLU", desc:"Continues refining learned representations. At this depth, the network captures complex non-linear interactions." },
+  { name:"Layer 5", neurons:6, label:"64",         activation:"ReLU", desc:"Mid-network layer. With 8 total layers, this is where vanishing gradients can start to become a concern." },
+  { name:"Layer 6", neurons:6, label:"64",         activation:"ReLU", desc:"Deep feature refinement. Each 64→64 block adds modeling capacity but also risk of overfitting." },
+  { name:"Layer 7", neurons:6, label:"64",         activation:"ReLU", desc:"Final hidden layer before output. Produces the last abstract representation before the prediction." },
+  { name:"Output",  neurons:1, label:"1",          activation:"None", desc:"Single output neuron with NO activation — this means linear output, typical for regression tasks (predicting a continuous value)." },
+];
+
+const SVG_W = 900, SVG_H = 380, CENTER_Y = SVG_H / 2;
+const LAYER_SP = SVG_W / (LAYERS.length + 1);
+const NEURON_SP = 30, RADIUS = 8;
+
+let activeLayer = null;
+let showFlow = false;
+const svg = document.getElementById("diagram");
+const infoPanel = document.getElementById("info-panel");
+
+function layerColor(i) {
+  if (i === 0) return { c: "var(--input-color)", g: "var(--input-glow)", raw: "#f59e0b" };
+  if (i === LAYERS.length - 1) return { c: "var(--output-color)", g: "var(--output-glow)", raw: "#ef4444" };
+  return { c: "var(--relu)", g: "var(--relu-glow)", raw: "#10b981" };
+}
+
+function neuronPositions(layerIdx) {
+  const l = LAYERS[layerIdx];
+  const count = l.neurons;
+  const x = (layerIdx + 1) * LAYER_SP;
+  const totalH = (count - 1) * NEURON_SP;
+  const startY = CENTER_Y - totalH / 2;
+  const pos = [];
+  for (let i = 0; i < count; i++) pos.push({ x, y: startY + i * NEURON_SP });
+  return pos;
+}
+
+function render() {
+  let html = "";
+  const ns = "http://www.w3.org/2000/svg";
+
+  // Defs for glow animation
+  html += `<defs>
+    <linearGradient id="flowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="50%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#ef4444"/>
+    </linearGradient>
+  </defs>`;
+
+  // Connections
+  for (let i = 1; i < LAYERS.length; i++) {
+    const prev = neuronPositions(i - 1);
+    const curr = neuronPositions(i);
+    const isConn = showFlow || (activeLayer !== null && (activeLayer === i || activeLayer === i - 1));
+    const stroke = isConn ? "var(--conn-active)" : "var(--conn)";
+    const sw = isConn ? 0.7 : 0.3;
+    for (const p of prev) {
+      for (const c of curr) {
+        html += `<line x1="${p.x}" y1="${p.y}" x2="${c.x}" y2="${c.y}" stroke="${stroke}" stroke-width="${sw}" style="transition:all .4s"/>`;
+      }
+    }
+  }
+
+  // Data flow arrow
+  if (showFlow) {
+    const x1 = LAYER_SP - 20, x2 = LAYER_SP * LAYERS.length + 20;
+    html += `<line x1="${x1}" y1="${CENTER_Y - 120}" x2="${x2}" y2="${CENTER_Y - 120}"
+      stroke="url(#flowGrad)" stroke-width="2" stroke-dasharray="6 4" opacity="0.5">
+      <animate attributeName="stroke-dashoffset" values="0;-20" dur="1.5s" repeatCount="indefinite"/>
+    </line>
+    <text x="${SVG_W / 2}" y="${CENTER_Y - 128}" text-anchor="middle"
+      fill="var(--text-muted)" font-size="9" font-family="'JetBrains Mono',monospace">forward(x) →</text>`;
+  }
+
+  // Neurons & labels
+  for (let i = 0; i < LAYERS.length; i++) {
+    const l = LAYERS[i];
+    const positions = neuronPositions(i);
+    const { c, g, raw } = layerColor(i);
+    const isActive = activeLayer === i || showFlow;
+    const isOutput = i === LAYERS.length - 1;
+    const x = (i + 1) * LAYER_SP;
+
+    // Clickable zone
+    html += `<rect class="layer-zone" x="${x - 35}" y="0" width="70" height="${SVG_H}"
+      fill="transparent" onclick="selectLayer(${i})" data-layer="${i}"/>`;
+
+    for (const pos of positions) {
+      const r = isOutput ? RADIUS * 1.6 : RADIUS;
+
+      // Pulse ring
+      if (isActive) {
+        html += `<circle cx="${pos.x}" cy="${pos.y}" r="${r + 6}" fill="none" stroke="${c}" stroke-width="1" opacity="0.4">
+          <animate attributeName="r" values="${r + 4};${r + 9};${r + 4}" dur="2.5s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.4;0.15;0.4" dur="2.5s" repeatCount="indefinite"/>
+        </circle>`;
+      }
+
+      // Neuron body
+      html += `<circle cx="${pos.x}" cy="${pos.y}" r="${r}"
+        fill="${isActive ? g : 'var(--surface)'}"
+        stroke="${isActive ? c : 'var(--border)'}"
+        stroke-width="${isActive ? 1.5 : 0.75}"
+        style="transition:all .4s"/>`;
+
+      // Core dot
+      html += `<circle cx="${pos.x}" cy="${pos.y}" r="${r * 0.3}"
+        fill="${c}" opacity="${isActive ? 0.9 : 0.25}" style="transition:opacity .4s"/>`;
+    }
+
+    // Size label
+    html += `<text x="${x}" y="${SVG_H - 20}" text-anchor="middle"
+      fill="${isActive ? 'var(--text)' : 'var(--text-dim)'}"
+      font-size="10" font-family="'JetBrains Mono',monospace" font-weight="500"
+      style="transition:fill .3s">${l.label}</text>`;
+
+    // Name label
+    html += `<text x="${x}" y="${SVG_H - 6}" text-anchor="middle"
+      fill="${isActive ? c : 'var(--text-dim)'}"
+      font-size="8" font-family="'JetBrains Mono',monospace" opacity="0.7">${l.name}</text>`;
+
+    // Activation badge
+    if (l.activation !== "—") {
+      const badgeColor = l.activation === "None" ? "var(--output-color)" : "var(--relu)";
+      const badgeBg = l.activation === "None" ? "var(--output-glow)" : "var(--relu-glow)";
+      html += `<rect x="${x - 16}" y="18" width="32" height="16" rx="4"
+        fill="${isActive ? badgeBg : 'transparent'}"
+        stroke="${isActive ? badgeColor : 'var(--border)'}" stroke-width="0.75"/>
+      <text x="${x}" y="29" text-anchor="middle" fill="${badgeColor}"
+        font-size="7" font-family="'JetBrains Mono',monospace" font-weight="500">${l.activation}</text>`;
+    }
+  }
+
+  svg.innerHTML = html;
+  renderInfo();
+}
+
+function renderInfo() {
+  const btnClear = document.getElementById("btn-clear");
+  btnClear.style.opacity = activeLayer !== null ? "1" : "0.4";
+
+  if (activeLayer === null) {
+    infoPanel.style.borderColor = "var(--border)";
+    infoPanel.innerHTML = `
+      <div class="placeholder-text">
+        <span class="hl">Click any layer</span> to inspect its configuration, parameter count, and role in the network.
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--input-color)"></div> Input</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--relu)"></div> Hidden (ReLU)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--output-color)"></div> Output (Linear)</div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const l = LAYERS[activeLayer];
+  const { c, raw } = layerColor(activeLayer);
+  infoPanel.style.borderColor = raw + "40";
+
+  let prevLabel = activeLayer > 0 ? LAYERS[activeLayer - 1].label : "—";
+  let stats = "";
+  if (activeLayer > 0) {
+    const pairs = [
+      ["Weights", `${prevLabel} × ${l.label}`],
+      ["Biases", l.label],
+      ["Activation", l.activation],
+      ["Output Shape", `(batch, ${l.label})`],
+    ];
+    stats = `<div class="info-stats">${pairs.map(([k, v]) =>
+      `<div><div class="info-stat-label">${k}</div><div class="info-stat-value">${v}</div></div>`
+    ).join("")}</div>`;
+  }
+
+  infoPanel.innerHTML = `
+    <div class="info-header">
+      <div class="info-dot" style="background:${c};box-shadow:0 0 8px ${c}"></div>
+      <span class="info-name">${l.name}</span>
+      <span class="info-badge">nn.Linear(→ ${l.label})</span>
+    </div>
+    <p class="info-desc">${l.desc}</p>
+    ${stats}`;
+}
+
+function selectLayer(i) {
+  activeLayer = activeLayer === i ? null : i;
+  render();
+}
+
+function clearSelection() {
+  activeLayer = null;
+  render();
+}
+
+function toggleFlow() {
+  showFlow = !showFlow;
+  const btn = document.getElementById("btn-flow");
+  btn.textContent = (showFlow ? "◉" : "○") + " Data Flow";
+  btn.classList.toggle("active", showFlow);
+  render();
+}
+
+// Initial render
+render();
+</script>
+</body>
+</html>
