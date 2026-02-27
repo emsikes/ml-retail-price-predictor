@@ -51,3 +51,7 @@ Pricing Predition Evaluations -
 - MSE: 8,244
 - r2: 62.5%
 
+- GPT-4.1-nano fine tuned: $68.91 +- 13.44 at 95% confidence
+- MSE: 14,147
+- r2: 35.6%
+
