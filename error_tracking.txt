@@ -35,6 +35,10 @@ Pricing Predition Evaluations -
 - MSE: 6.934
 - r2: 68.4%
 
+- Redemption 10 layer nueral network with Batchnorm, 5 epochs: 40.74 +- 7.33 ay 95% confidence
+- MSE: 4,460
+- r2: 79.7%
+
 - Gemma 270b: 202.10 +- 46.85 at 95% confidence
 - MSE: 155,126
 - r2: -605.8%
