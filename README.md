@@ -58,8 +58,9 @@ The pipeline ingests the **Amazon product dataset from Hugging Face**, explores 
 │ • BoW + LR     │  │    w/ BatchNorm   │  │     Gemma, GPT-4.1-nano) │
 │ • Random Forest│  │  • 10L Residual   │  │  • Fine-Tuned            │
 │ • XGBoost      │  │    w/ Skip Conn.  │  │    (GPT-4.1-nano SFT)   │
-└────────┬───────┘  └─────────┬─────────┘  └────────────┬─────────────┘
-         │                    │                         │
+└────────┬───────┘  └─────────┬─────────┘  │  • Open-Source           │
+         │                    │            │    (Llama-3.2-3B base)   │
+         │                    │            └────────────┬─────────────┘
          └────────────────────┼─────────────────────────┘
                               ▼
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -76,27 +77,28 @@ The pipeline ingests the **Amazon product dataset from Hugging Face**, explores 
 
 ## 📊 Model Benchmark Results
 
-All models were evaluated on the same held-out test set from the Amazon retail product dataset using MAE, MSE, and R². Confidence intervals are reported at the 95% level. 15 models were benchmarked across baselines, classical ML, neural networks, frontier LLMs, and fine-tuned LLMs.
+All models were evaluated on the same held-out test set from the Amazon retail product dataset using MAE, MSE, and R². Confidence intervals are reported at the 95% level. **16 models** were benchmarked across baselines, classical ML, neural networks, frontier LLMs, fine-tuned LLMs, and open-source LLMs.
 
 ### Leaderboard (Ranked by MAE)
 
 | Rank | Model | MAE (± 95% CI) | MSE | R² Score |
 |:-----|:------|:----------------|:----|:---------|
-| 🥇 | **10-Layer Residual NN** | **40.74 ± 7.33** | **4,460** | **79.7%** |
-| 🥈 | GPT-5.1 | 48.24 ± 10.66 | 8,244 | 62.5% |
-| 🥉 | Claude Opus 4.6 | 49.14 ± 33.92 | 8,406 | 67.9% |
-| 4 | Optimized 3-Layer NN | 51.53 ± 9.07 | 6,934 | 68.4% |
-| 5 | Vanilla 8-Layer NN | 58.82 ± 9.38 | 8,039 | 63.4% |
-| 6 | XGBoost | 68.23 ± 9.73 | 9,582 | 56.4% |
-| 7 | GPT-4.1-nano | 68.29 ± 15.79 | 17,638 | 19.7% |
-| 8 | GPT-4.1-nano (Fine-Tuned) | 68.91 ± 13.44 | 14,147 | 35.6% |
-| 9 | Random Forest | 73.04 ± 11.93 | 12,747 | 42.0% |
-| 10 | NLP Linear Regression (BoW) | 76.81 ± 11.20 | 12,786 | 41.8% |
-| 11 | Human | 87.62 ± 24.16 | 22,872 | 6.9% |
-| 12 | Linear Regression | 101.56 ± 14.21 | 20,832 | 5.2% |
-| 13 | Constant Pricer | 106.18 ± 14.36 | 106,180 | -0.2% |
-| 14 | Gemma 270B | 202.10 ± 46.85 | 155,126 | -605.8% |
-| 15 | Random Pricer | 382.08 ± 37.47 | 219,084 | -896.9% |
+| 🥇 | **10-Layer Residual NN** | **$40.74 ± $7.33** | **4,460** | **79.7%** |
+| 🥈 | GPT-5.1 | $48.24 ± $10.66 | 8,244 | 62.5% |
+| 🥉 | Claude Opus 4.6 | $49.14 ± $33.92 | 8,406 | 67.9% |
+| 4 | Optimized 3-Layer NN | $51.53 ± $9.07 | 6,934 | 68.4% |
+| 5 | Vanilla 8-Layer NN | $58.82 ± $9.38 | 8,039 | 63.4% |
+| 6 | XGBoost | $68.23 ± $9.73 | 9,582 | 56.4% |
+| 7 | GPT-4.1-nano | $68.29 ± $15.79 | 17,638 | 19.7% |
+| 8 | GPT-4.1-nano (Fine-Tuned) | $68.91 ± $13.44 | 14,147 | 35.6% |
+| 9 | Random Forest | $73.04 ± $11.93 | 12,747 | 42.0% |
+| 10 | NLP Linear Regression (BoW) | $76.81 ± $11.20 | 12,786 | 41.8% |
+| 11 | Human | $87.62 ± $24.16 | 22,872 | 6.9% |
+| 12 | Linear Regression | $101.56 ± $14.21 | 20,832 | 5.2% |
+| 13 | Constant Pricer | $106.18 ± $14.36 | 106,180 | -0.2% |
+| 14 | Llama-3.2-3B (Base) | $147.49 ± $53.17 | 168,916 | -668.6% |
+| 15 | Gemma 270B | $202.10 ± $46.85 | 155,126 | -605.8% |
+| 16 | Random Pricer | $382.08 ± $37.47 | 219,084 | -896.9% |
 
 ### Neural Network Architecture Comparison
 
@@ -121,6 +123,8 @@ All models were evaluated on the same held-out test set from the Amazon retail p
 > - NLP features (Bag of Words) provided a massive jump from 5.2% → 41.8% R², confirming that textual product descriptions carry substantial pricing signal.
 > - **Frontier LLMs performed well zero-shot** but couldn't match a trained specialist. Claude Opus 4.6's wide CI (±$33.92) suggests inconsistent predictions; GPT-5.1 showed the best balance of accuracy and consistency among LLMs.
 > - **Fine-tuning GPT-4.1-nano** improved R² (19.7% → 35.6%) but barely moved MAE, suggesting the nano model lacks capacity for this task.
+> - **Llama-3.2-3B (base, untuned)** produced a MAE of $147.49 with a very wide CI (±$53.17) and a deeply negative R² (-668.6%), confirming that a small open-source base model without instruction tuning or domain adaptation is not viable for structured price prediction. This establishes the pre-fine-tuning baseline for the QLoRA fine-tuning phase.
+> - **Gemma 270B** underperformed despite its scale (MAE $202.10, R² -605.8%), suggesting its instruction-following and numerical reasoning are poorly suited to this pricing format — model size alone does not guarantee task fit.
 
 ---
 
@@ -150,6 +154,7 @@ All models were evaluated on the same held-out test set from the Amazon retail p
 - Supervised fine-tuning of **GPT-4.1-nano** for price prediction
 - Prepare JSONL training datasets for SFT workflows
 - Evaluate fine-tuned LLMs against classical ML and neural network baselines
+- Zero-shot evaluation of **Llama-3.2-3B (base)** to establish open-source pre-fine-tuning baseline (MAE: $147.49, R²: -668.6%)
 
 ### Phase 5 — Agentic AI Serverless RAG Application
 - Build a **multi-modal RAG pipeline** with ChromaDB as the vector store
@@ -157,6 +162,7 @@ All models were evaluated on the same held-out test set from the Amazon retail p
 - Deploy an interactive UI with **Gradio**
 - Run serverless inference on **Modal.com** for scalable, cost-efficient compute
 - Combine fine-tuned models with retrieval-augmented context for intelligent pricing
+- QLoRA fine-tuning of **Llama-3.2-3B** on domain-curated product pricing data
 
 ---
 
@@ -171,7 +177,8 @@ All models were evaluated on the same held-out test set from the Amazon retail p
 | **NLP** | Bag of Words (HashingVectorizer), text preprocessing |
 | **Dataset** | Hugging Face Datasets (Amazon Retail) |
 | **Frontier LLMs** | OpenAI (GPT-5.1, GPT-4.1-nano), Anthropic (Claude Opus 4.6), Google (Gemma 270B) |
-| **LLM Fine-Tuning** | OpenAI API (GPT-4.1-nano SFT) |
+| **Open-Source LLMs** | Meta Llama 3.2-3B (base + QLoRA fine-tuning) |
+| **LLM Fine-Tuning** | OpenAI API (GPT-4.1-nano SFT), HuggingFace PEFT + QLoRA (Llama-3.2-3B) |
 | **Vector DB** | ChromaDB |
 | **Orchestration** | LangChain |
 | **Frontend** | Gradio |
@@ -207,7 +214,7 @@ ml-retail-price-predictor/
 python >= 3.11
 pip install jupyter numpy pandas scikit-learn xgboost
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126  # GPU support
-pip install datasets transformers    # Hugging Face
+pip install datasets transformers peft bitsandbytes  # Hugging Face + QLoRA
 pip install litellm openai           # LLM providers
 pip install langchain chromadb       # RAG pipeline
 pip install gradio modal             # App deployment
@@ -242,6 +249,7 @@ MAE by Model (Worst → Best)
 
 Random Pricer        ████████████████████████████████████████  $382.08
 Gemma 270B           █████████████████████                     $202.10
+Llama-3.2-3B (Base)  ███████████████▍                          $147.49
 Constant Pricer      ███████████                               $106.18
 Linear Regression    ██████████▋                               $101.56
 Human                █████████▏                                 $87.62
@@ -269,6 +277,8 @@ GPT-5.1              █████                                      $48.24
 - [x] Neural network development (3 architectures: vanilla, optimized, residual)
 - [x] Frontier LLM zero-shot evaluation (GPT-5.1, Claude Opus 4.6, GPT-4.1-nano, Gemma 270B)
 - [x] GPT-4.1-nano supervised fine-tuning
+- [x] Llama-3.2-3B base model zero-shot evaluation (pre-fine-tuning baseline)
+- [ ] QLoRA fine-tuning of Llama-3.2-3B on domain pricing data
 - [ ] ChromaDB vector store integration
 - [ ] LangChain agentic workflow orchestration
 - [ ] Gradio interactive UI
