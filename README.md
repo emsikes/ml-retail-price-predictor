@@ -86,7 +86,7 @@ All models were evaluated on the same held-out test set from the Amazon retail p
 
 | Rank | Model | Category | MAE (± 95% CI) | MSE | R² |
 |:-----|:------|:---------|:----------------|:----|:---|
-|| 1  | **Ensemble (RAG + FT + DNN)** | Ensemble | **$31.18 ± $6.75** | **3,346** | **84.8%** |
+| 1 | **Ensemble (RAG + FT + DNN)** | Ensemble | **$31.18 ± $6.75** | **3,346** | **84.8%** |
 | 2  | GPT-5.4 with RAG | RAG | $31.76 ± $6.74 | 3,517 | 84.0% |
 | 3  | Llama-3.2-3B (Fine-Tuned Full) | Open-source FT | $36.58 ± $7.40 | 4,189 | 80.9% |
 | 4 | 10-Layer Residual NN | Neural network | $40.74 ± $7.33 | 4,460 | 79.7% |
